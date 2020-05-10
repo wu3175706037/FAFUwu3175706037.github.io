@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Intro to MapView - Create a 2D map - 4.15</title>
+    <style>
+      html,
+      body{
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 90%;
+        width: 100%;
+      }
+      #title1 {
+        height: 10%;
+        width: 100%;
+        background-color: red;
+        float: left;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar"
+      ], function(Map, MapView, FeatureLayer, Legend, ScaleBar) {
+        var flayer = new FeatureLayer({
+          url:
+            "http://www.arcgisonline.cn/server/rest/services/Hosted/%E4%B8%AD%E5%9B%BD%E4%B8%AD%E8%A5%BF%E9%83%A8%E7%9C%81%E4%BC%9A%E5%9F%8E%E5%B8%82%E4%BA%BA%E5%8F%A3%E5%8A%A8%E6%80%81%E6%83%85%E5%86%B5/FeatureServer"
+        });
+
+        var map = new Map({
+          basemap: "topo",
+          layers: [flayer]
+        });
+        // map1.layers.add();
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 4,
+          center: [114, 32] // longitude, latitude
+        });
+        var legend = new Legend({
+          view: view,
+          layerInfos: [
+            {
+              layer: flayer,
+              title: "人口动态"
+            }
+          ]
+        });
+        view.ui.add(legend, "bottom-right");
+
+        var scaleBar = new ScaleBar({
+          view: view,
+          style: "ruler",
+          unit: "metric"
+        });
+        view.ui.add(scaleBar, {
+          position: "bottom-left"
+        });
+
+        var coordsWidget = document.createElement("div");
+        coordsWidget.id = "coordsWidget";
+        coordsWidget.className = "esri-widget esri-component";
+        coordsWidget.style.padding = "7px 15px 5px";
+
+        view.ui.add(coordsWidget, "top-right");
+        function showCoordinates(pt) {
+          var coords =
+            "Lat/Lon " +
+            pt.latitude.toFixed(3) +
+            " " +
+            pt.longitude.toFixed(3) +
+            " | Scale 1:" +
+            Math.round(view.scale * 1) / 1 +
+            " | Zoom " +
+            view.zoom;
+          coordsWidget.innerHTML = coords;
+        }
+        view.watch("stationary", function(isStationary) {
+          showCoordinates(view.center);
+        });
+
+        view.on("pointer-move", function(evt) {
+          showCoordinates(view.toMap({ x: evt.x, y: evt.y }));
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="title1">
+      <h3>中国人口动态</h3>
+    </div>
+    <div id="viewDiv"></div>
+  </body>
+</html>
